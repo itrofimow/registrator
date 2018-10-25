@@ -110,10 +110,11 @@ func (r *ConsulAdapter) buildCheck(service *bridge.Service) *consulapi.AgentServ
 		check.Script = r.interpolateService(script, service)
 	} else if ttl := service.Attrs["check_ttl"]; ttl != "" {
 		check.TTL = ttl
-	} else if tcp := service.Attrs["check_tcp"]; tcp != "" {
+	} else if tcp := service.Attrs["check_tcp"]; tcp == "" {
 		check.TCP = fmt.Sprintf("%s:%d", service.IP, service.Port)
 		if timeout := service.Attrs["check_timeout"]; timeout != "" {
-			check.Timeout = timeout
+			check.Timeout = "1s"
+			check.Interval = "2s"
 		}
 	} else {
 		return nil
@@ -132,7 +133,7 @@ func (r *ConsulAdapter) buildCheck(service *bridge.Service) *consulapi.AgentServ
 }
 
 func (r *ConsulAdapter) Deregister(service *bridge.Service) error {
-	return r.client.Agent().ServiceDeregister(service.ID)
+	return nil//r.client.Agent().ServiceDeregister(service.ID)
 }
 
 func (r *ConsulAdapter) Refresh(service *bridge.Service) error {
